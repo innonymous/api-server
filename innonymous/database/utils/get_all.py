@@ -1,6 +1,5 @@
-from typing import Any, Type, TypeVar, Union
+from typing import Type, TypeVar
 
-from sqlalchemy import Column
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -10,17 +9,15 @@ from innonymous.database.utils.query import query
 Model = TypeVar('Model', bound=Base)
 
 
-async def get_by(
+async def get_all(
         session: AsyncSession,
         model: Type[Model],
-        attribute: Union[Column, Any],
-        value: Any,
         *args,
         **kwargs
 ) -> list[Model]:
     return await query(
         session,
-        select(model).where(attribute == value),
+        select(model),
         *args,
         **kwargs
     )
