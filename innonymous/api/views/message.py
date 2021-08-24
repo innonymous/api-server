@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import status, APIRouter, Depends, Query, HTTPException
@@ -18,17 +19,21 @@ router = APIRouter(tags=['messages', 'room'])
 )
 async def get(
         uuid: UUID,
-        offset: int = Query(
-            0,
-            ge=0
-        ),
         limit: int = Query(
             15,
             ge=1,
             le=100
         ),
+        after: int = Query(
+            0
+        ),
         session: AsyncSession = Depends(db_engine.session)
 ) -> MessageListSchema:
+    after = datetime.fromtimestamp(
+        after,
+        timezone.utc
+    ).replace(tzinfo=None)
+
     return MessageListSchema(
         messages=[
             MessageInfoSchema.from_orm(room)
@@ -37,10 +42,10 @@ async def get(
                 Message,
                 Message.room_uuid,
                 uuid,
-                offset,
-                limit,
+                limit=limit,
                 order_by=Message.time,
-                decreasing=True
+                decreasing=True,
+                filters=[Message.time > after, ]
             )
         ]
     )

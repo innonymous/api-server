@@ -12,20 +12,21 @@ Model = TypeVar('Model', bound=Base)
 async def query(
         session: AsyncSession,
         _query: Query,
+        *,
         offset: int = None,
         limit: int = None,
         order_by: Union[Column, Any] = None,
         decreasing: bool = False,
-        *fields_to_load: Union[Column, Any]
+        filters: list[Any] = None,
+        fields_to_load: list[Union[Column, Any]] = None
 ) -> list[Model]:
-    for field in fields_to_load:
-        _query = _query.options(selectinload(field))
+    if fields_to_load:
+        for field in fields_to_load:
+            _query = _query.options(selectinload(field))
 
-    if offset:
-        _query = _query.offset(offset)
-
-    if limit:
-        _query = _query.limit(limit)
+    if filters:
+        for f in filters:
+            _query = _query.filter(f)
 
     if order_by:
         if decreasing:
@@ -34,6 +35,12 @@ async def query(
             order_by = asc(order_by)
 
         _query = _query.order_by(order_by)
+
+    if offset:
+        _query = _query.offset(offset)
+
+    if limit:
+        _query = _query.limit(limit)
 
     return (
         await session.execute(_query)
