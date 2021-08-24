@@ -1,3 +1,13 @@
 uvicorn==0.15.0
 fastapi==0.68.0
 pydantic==1.8.2
+sqlalchemy==1.4.23
+psycopg2==2.9.1
+
+# Migration.
+alembic==1.6.5
+Mako==1.1.5
+MarkupSafe==2.0.1
+python-dateutil==2.8.2
+python-editor==1.0.4
+six==1.16.0
