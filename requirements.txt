@@ -8,3 +8,4 @@ alembic==1.6.5
 asyncpg==0.24.0
 greenlet==1.1.1
 pyjwt==2.1.0
+pyyaml==5.4.1
