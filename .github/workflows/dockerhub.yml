@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 jobs:
-  pylint:
+  dockerhub:
     # Use ubuntu-20.04 LTS.
     runs-on: ubuntu-20.04
     steps:
