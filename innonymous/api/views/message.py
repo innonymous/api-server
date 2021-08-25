@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime
 from uuid import UUID
 
 from fastapi import status, APIRouter, Depends, Query, HTTPException
@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from innonymous.api import db_engine, auth
 from innonymous.api.schemas.message import MessageListSchema, \
     MessageInfoSchema, MessageCreateSchema
+from innonymous.api.utils import to_utc_native
 from innonymous.database.models import Message, Room, User
 from innonymous.database.utils import get_by
 
@@ -20,19 +21,22 @@ router = APIRouter(tags=['messages', 'room'])
 async def get(
         uuid: UUID,
         limit: int = Query(
-            15,
-            ge=1,
-            le=100
+            None,
+            gt=0
         ),
         after: datetime = Query(
-            datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
+            None
+        ),
+        before: datetime = Query(
+            None
         ),
         session: AsyncSession = Depends(db_engine.session)
 ) -> MessageListSchema:
-    if after.tzinfo:
-        after = after.astimezone(
-            timezone.utc
-        ).replace(tzinfo=None)
+    filters = []
+    if after:
+        filters.append(Message.time >= to_utc_native(after))
+    if before:
+        filters.append(Message.time <= to_utc_native(before))
 
     return MessageListSchema(
         messages=[
@@ -45,7 +49,7 @@ async def get(
                 limit=limit,
                 order_by=Message.time,
                 decreasing=True,
-                filters=[Message.time > after, ]
+                filters=filters
             )
         ]
     )
@@ -60,7 +64,8 @@ async def create(
         user: User = Depends(auth.authenticate),
         session: AsyncSession = Depends(db_engine.session)
 ) -> None:
-    room = await get_by(session, Room, Room.uuid, uuid)
+    room: Room
+    room, = await get_by(session, Room, Room.uuid, uuid) or [None]
 
     if not room:
         raise HTTPException(
@@ -72,9 +77,14 @@ async def create(
         type=message.type,
         data=message.data,
         user=user,
-        room=room[0]
+        room=room
     )
 
+    # Last active.
+    user.active = room.active = datetime.utcnow()
+
+    session.add(user)
+    session.add(room)
     session.add(message)
 
     await session.commit()
