@@ -24,15 +24,15 @@ async def get(
             ge=1,
             le=100
         ),
-        after: int = Query(
-            0
+        after: datetime = Query(
+            datetime.fromtimestamp(0).replace(tzinfo=timezone.utc)
         ),
         session: AsyncSession = Depends(db_engine.session)
 ) -> MessageListSchema:
-    after = datetime.fromtimestamp(
-        after,
-        timezone.utc
-    ).replace(tzinfo=None)
+    if after.tzinfo:
+        after = after.astimezone(
+            timezone.utc
+        ).replace(tzinfo=None)
 
     return MessageListSchema(
         messages=[
