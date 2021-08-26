@@ -3,15 +3,13 @@
 
 ![Build Status](https://github.com/innonymous/api-server/actions/workflows/dockerhub.yml/badge.svg)
 
-Innonymous is a ditributed, mobile-ready anonymous chat, powered
-by python and React.js
+Innonymous is a mobile-ready anonymous chat, powered by python and React.js
 
 - Light
 - Fully anonymous
 - High performance
-- ✨Magic ✨
 
-## Quick start
+## Quick start (You are needed Docker)
 Example `.env` file:
 ```sh
 API_DATABASE_URL=postgresql+asyncpg://username:password@host/innonymous
