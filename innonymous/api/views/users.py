@@ -1,4 +1,4 @@
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import status, APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -44,6 +44,7 @@ async def create(
 ):
     # noinspection Pydantic
     payload = TokenCreatePayloadSchema(
+        uuid=uuid4(),
         captcha=await captcha.generate(),
         **user.dict()
     )
@@ -69,7 +70,6 @@ async def confirm(
         )
 
     except Exception as exc:
-        print(exc)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail='Invalid or expired token.'
@@ -81,7 +81,15 @@ async def confirm(
             detail='Invalid captcha.'
         )
 
+    _user = await get_by(session, User, User.uuid, payload.uuid) or None
+    if _user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='User already exists.'
+        )
+
     _user = User(
+        uuid=payload.uuid,
         name=payload.name
     )
 

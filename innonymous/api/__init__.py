@@ -23,11 +23,12 @@ db_engine = DatabaseEngine(
 )
 
 auth = JWTAuthenticator(
-    settings.jwt_key,
+    settings.key,
     db_engine.session
 )
 
 captcha = Captcha(
+    settings.key,
     settings.captcha_store
 )
 
