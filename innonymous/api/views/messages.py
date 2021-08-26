@@ -11,11 +11,11 @@ from innonymous.api.utils import to_utc_native
 from innonymous.database.models import Message, Room, User
 from innonymous.database.utils import get_by
 
-router = APIRouter(tags=['messages', 'room'])
+router = APIRouter(tags=['messages', 'rooms'])
 
 
 @router.get(
-    '/room/{uuid}/messages',
+    '/rooms/{uuid}/messages',
     response_model=MessageListSchema
 )
 async def get(
@@ -56,7 +56,7 @@ async def get(
 
 
 @router.post(
-    '/room/{uuid}/message'
+    '/rooms/{uuid}/messages/new'
 )
 async def create(
         uuid: UUID,

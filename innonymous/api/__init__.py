@@ -4,8 +4,10 @@ the api uses, i.e. database, etc.
 """
 
 from fastapi import FastAPI
+from starlette.staticfiles import StaticFiles
 
 from innonymous.api.settings import APISettings
+from innonymous.api.utils import Captcha
 from innonymous.api.utils.auth import JWTAuthenticator
 from innonymous.database import DatabaseEngine
 
@@ -25,8 +27,19 @@ auth = JWTAuthenticator(
     db_engine.session
 )
 
-from innonymous.api.views import user, room, message
+captcha = Captcha(
+    settings.captcha_store
+)
 
-app.include_router(user.router)
-app.include_router(room.router)
-app.include_router(message.router)
+from innonymous.api.views import users, rooms, messages
+
+app.include_router(users.router)
+app.include_router(rooms.router)
+app.include_router(messages.router)
+
+app.mount(
+    '/captcha',
+    StaticFiles(
+        directory=settings.captcha_store
+    )
+)

@@ -1,13 +1,13 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from innonymous.api import db_engine
+from innonymous.api import db_engine, auth
 from innonymous.api.schemas.room import RoomInfoSchema, RoomListSchema, \
     RoomCreateSchema
 from innonymous.database.models import Room
 from innonymous.database.utils import get_all
 
-router = APIRouter(tags=['room'])
+router = APIRouter(tags=['rooms'])
 
 
 @router.get(
@@ -26,8 +26,11 @@ async def get(
 
 
 @router.post(
-    '/room/',
-    response_model=RoomInfoSchema
+    '/rooms/new',
+    response_model=RoomInfoSchema,
+    dependencies=[
+        Depends(auth.authenticate)
+    ]
 )
 async def create(
         room: RoomCreateSchema,
