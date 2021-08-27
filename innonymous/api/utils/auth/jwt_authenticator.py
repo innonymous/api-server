@@ -7,14 +7,15 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from innonymous.api.schemas.token import TokenAuthPayloadSchema
+from innonymous.api.schemas.token.payload import TokenAuthPayloadSchema
+from innonymous.api.utils.auth import IAuthenticator
 from innonymous.api.utils.auth.authenticator import Authenticator
-from innonymous.database.models import User
+from innonymous.database.models import UserModel
 
 PayloadSchema = TypeVar('PayloadSchema', bound=BaseModel)
 
 
-class JWTAuthenticator(Authenticator):
+class JWTAuthenticator(IAuthenticator):
     algorithm = 'HS256'
     bearer = HTTPBearer()
 
@@ -23,9 +24,8 @@ class JWTAuthenticator(Authenticator):
             key: str,
             session: Callable[[], AsyncGenerator[AsyncSession, None]]
     ) -> None:
-        super().__init__(session)
-
         self.__key = key
+        self.__authenticator = Authenticator(session)
 
     def encode(self, payload: PayloadSchema) -> str:
         payload = json.loads(payload.json())
@@ -44,7 +44,7 @@ class JWTAuthenticator(Authenticator):
     async def authenticate(
             self,
             credentials: HTTPAuthorizationCredentials = Security(bearer)
-    ) -> User:
+    ) -> UserModel:
         if not credentials:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -63,7 +63,7 @@ class JWTAuthenticator(Authenticator):
                 TokenAuthPayloadSchema
             )
 
-            return await super().authenticate(
+            return await self.__authenticator.authenticate(
                 payload.uuid
             )
 

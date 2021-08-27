@@ -9,7 +9,7 @@ from innonymous.database.models import Base
 from innonymous.database.models.message.type import MessageType
 
 
-class Message(Base):
+class MessageModel(Base):
     __tablename__ = 'messages'
 
     uuid: UUID = Column(
@@ -42,5 +42,5 @@ class Message(Base):
         nullable=False
     )
 
-    user = relationship('User', back_populates='messages')
-    room = relationship('Room', back_populates='messages')
+    user = relationship('UserModel', back_populates='messages')
+    room = relationship('RoomModel', back_populates='messages')

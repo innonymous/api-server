@@ -1,14 +1,14 @@
-from datetime import datetime
 from uuid import uuid4
 
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from innonymous.database.models import Base
+from innonymous.database.models.i_time_trackable import ITimeTrackable
 
 
-class Room(Base):
+class RoomModel(Base, ITimeTrackable):
     __tablename__ = 'rooms'
 
     uuid: UUID = Column(
@@ -20,10 +20,5 @@ class Room(Base):
         String(length=32),
         nullable=False
     )
-    active: datetime = Column(
-        DateTime(),
-        default=datetime.utcnow,
-        nullable=False
-    )
 
-    messages = relationship('Message', back_populates='room')
+    messages = relationship('MessageModel', back_populates='room')

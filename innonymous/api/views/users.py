@@ -1,14 +1,16 @@
+from base64 import b64encode
 from uuid import UUID, uuid4
 
 from fastapi import status, APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from innonymous.api import db_engine, auth, captcha
-from innonymous.api.schemas.token import TokenInfoSchema, TokenAuthPayloadSchema
-from innonymous.api.schemas.token.payload import TokenCreatePayloadSchema
+from innonymous.api.schemas.token import TokenInfoSchema
+from innonymous.api.schemas.token.payload import TokenAuthPayloadSchema, \
+    TokenCreatePayloadSchema
 from innonymous.api.schemas.user import UserInfoSchema, UserCreateSchema, \
     UserConfirmSchema
-from innonymous.database.models import User
+from innonymous.database.models import UserModel
 from innonymous.database.utils import get_by
 
 router = APIRouter(tags=['users'])
@@ -22,12 +24,12 @@ async def get(
         uuid: UUID,
         session: AsyncSession = Depends(db_engine.session)
 ) -> UserInfoSchema:
-    user = await get_by(session, User, User.uuid, uuid)
+    user = await get_by(session, UserModel, UserModel.uuid, uuid)
 
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f'User with uuid {uuid} not found.'
+            detail=f'UserModel with uuid {uuid} not found.'
         )
 
     return UserInfoSchema.from_orm(
@@ -41,16 +43,18 @@ async def get(
 )
 async def create(
         user: UserCreateSchema
-):
+) -> UserConfirmSchema:
+    _hash, _captcha = captcha.generate()
+
     # noinspection Pydantic
     payload = TokenCreatePayloadSchema(
         uuid=uuid4(),
-        captcha=await captcha.generate(),
+        captcha=_hash,
         **user.dict()
     )
 
     return UserConfirmSchema(
-        captcha=payload.captcha,
+        captcha=b64encode(_captcha).decode(),
         create_token=auth.encode(payload)
     )
 
@@ -81,14 +85,20 @@ async def confirm(
             detail='Invalid captcha.'
         )
 
-    _user = await get_by(session, User, User.uuid, payload.uuid) or None
+    _user = await get_by(
+        session,
+        UserModel,
+        UserModel.uuid,
+        payload.uuid
+    ) or None
+
     if _user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail='User already exists.'
+            detail='UserModel already exists.'
         )
 
-    _user = User(
+    _user = UserModel(
         uuid=payload.uuid,
         name=payload.name
     )

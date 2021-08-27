@@ -7,8 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from innonymous.api import db_engine, auth
 from innonymous.api.schemas.message import MessageListSchema, \
     MessageInfoSchema, MessageCreateSchema
-from innonymous.api.utils import to_utc_native
-from innonymous.database.models import Message, Room, User
+from innonymous.api.utils.time import to_utc_native, inactivity_interval, \
+    update_active
+from innonymous.database.models import MessageModel, RoomModel, UserModel
 from innonymous.database.utils import get_by
 
 router = APIRouter(tags=['messages', 'rooms'])
@@ -34,20 +35,20 @@ async def get(
 ) -> MessageListSchema:
     filters = []
     if after:
-        filters.append(Message.time >= to_utc_native(after))
+        filters.append(MessageModel.time >= to_utc_native(after))
     if before:
-        filters.append(Message.time <= to_utc_native(before))
+        filters.append(MessageModel.time <= to_utc_native(before))
 
     return MessageListSchema(
         messages=[
             MessageInfoSchema.from_orm(room)
             for room in await get_by(
                 session,
-                Message,
-                Message.room_uuid,
+                MessageModel,
+                MessageModel.room_uuid,
                 uuid,
                 limit=limit,
-                order_by=Message.time,
+                order_by=MessageModel.time,
                 decreasing=True,
                 filters=filters
             )
@@ -61,30 +62,35 @@ async def get(
 async def create(
         uuid: UUID,
         message: MessageCreateSchema,
-        user: User = Depends(auth.authenticate),
+        user: UserModel = Depends(auth.authenticate),
         session: AsyncSession = Depends(db_engine.session)
 ) -> None:
-    room: Room
-    room, = await get_by(session, Room, Room.uuid, uuid) or [None]
+    if inactivity_interval(user).total_seconds() < 0.5:
+        await update_active(user, session)
+
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail='Too many requests, try later.'
+        )
+
+    room: RoomModel
+    room, = await get_by(session, RoomModel, RoomModel.uuid, uuid) or [None]
 
     if not room:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f'User with uuid {uuid} not found.'
+            detail=f'UserModel with uuid {uuid} not found.'
         )
 
-    message = Message(
+    message = MessageModel(
         type=message.type,
         data=message.data,
         user=user,
         room=room
     )
 
-    # Last active.
-    user.active = room.active = datetime.utcnow()
-
-    session.add(user)
-    session.add(room)
     session.add(message)
 
     await session.commit()
+    await update_active(room, session)
+    await update_active(user, session)
