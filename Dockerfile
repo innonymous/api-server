@@ -14,10 +14,9 @@ RUN groupadd innonymous && useradd innonymous -g innonymous
 # App.
 COPY ./config ./config
 COPY ./innonymous ./innonymous
+COPY ./entrypoint.sh ./entrypoint.sh
 
 # Run.
 USER innonymous
 EXPOSE 8000
-ENTRYPOINT ["./env/bin/uvicorn", "innonymous.api:app", \
-            "--host", "0.0.0.0", \
-            "--log-config", "./config/logging.yml"]
+ENTRYPOINT ["sh", "./entrypoint.sh"]
