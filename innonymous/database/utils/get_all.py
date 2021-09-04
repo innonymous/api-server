@@ -1,4 +1,7 @@
-from typing import Type, TypeVar
+from typing import (
+    Type,
+    TypeVar
+)
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -10,14 +13,6 @@ Model = TypeVar('Model', bound=Base)
 
 
 async def get_all(
-        session: AsyncSession,
-        model: Type[Model],
-        *args,
-        **kwargs
+        session: AsyncSession, model: Type[Model], *args, **kwargs
 ) -> list[Model]:
-    return await query(
-        session,
-        select(model),
-        *args,
-        **kwargs
-    )
+    return await query(session, select(model), *args, **kwargs)

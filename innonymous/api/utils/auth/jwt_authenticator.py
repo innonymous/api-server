@@ -1,18 +1,33 @@
 import json
-from typing import Callable, AsyncGenerator
+from typing import (
+    AsyncGenerator,
+    Callable,
+    Type,
+    TypeVar
+)
 
 import jwt
-from fastapi import status, Security, HTTPException
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import (
+    HTTPException,
+    Security,
+    status
+)
+from fastapi.security import (
+    HTTPAuthorizationCredentials,
+    HTTPBearer
+)
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from innonymous.api.schemas.token import TokenPayloadSchema
+from innonymous.api.schemas.token.payload import TokenAuthPayloadSchema
+from innonymous.api.utils.auth import IAuthenticator
 from innonymous.api.utils.auth.authenticator import Authenticator
-from innonymous.database.models import User
+from innonymous.database.models import UserModel
 
 
-class JWTAuthenticator(Authenticator):
+class JWTAuthenticator(IAuthenticator):
+    PayloadSchema = TypeVar('PayloadSchema', bound=BaseModel)
+
     algorithm = 'HS256'
     bearer = HTTPBearer()
 
@@ -21,23 +36,22 @@ class JWTAuthenticator(Authenticator):
             key: str,
             session: Callable[[], AsyncGenerator[AsyncSession, None]]
     ) -> None:
-        super().__init__(session)
-
         self.__key = key
+        self.__authenticator = Authenticator(session)
 
-    def token(self, payload: BaseModel) -> str:
+    def encode(self, payload: PayloadSchema) -> str:
         payload = json.loads(payload.json())
 
-        return jwt.encode(
-            payload,
-            self.__key,
-            JWTAuthenticator.algorithm
+        return jwt.encode(payload, self.__key, JWTAuthenticator.algorithm)
+
+    def decode(self, token: str, model: Type[PayloadSchema]) -> PayloadSchema:
+        return model.parse_obj(
+            jwt.decode(token, self.__key, [JWTAuthenticator.algorithm, ])
         )
 
     async def authenticate(
-            self,
-            credentials: HTTPAuthorizationCredentials = Security(bearer)
-    ) -> User:
+            self, credentials: HTTPAuthorizationCredentials = Security(bearer)
+    ) -> UserModel:
         if not credentials:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -51,22 +65,14 @@ class JWTAuthenticator(Authenticator):
             )
 
         try:
-            payload = self.__decode(credentials.credentials)
-
-            return await super().authenticate(
-                payload.uuid
+            payload = self.decode(
+                credentials.credentials, TokenAuthPayloadSchema
             )
 
-        except Exception as exc:
-            from traceback import print_exc
-            print_exc()
+            return await self.__authenticator.authenticate(payload.uuid)
 
+        except Exception as exc:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail='Invalid or expired token.'
             ) from exc
-
-    def __decode(self, token: str) -> TokenPayloadSchema:
-        return TokenPayloadSchema.parse_obj(
-            jwt.decode(token, self.__key, [JWTAuthenticator.algorithm, ])
-        )

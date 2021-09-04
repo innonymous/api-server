@@ -9,3 +9,7 @@ asyncpg==0.24.0
 greenlet==1.1.1
 pyjwt==2.1.0
 pyyaml==5.4.1
+captcha==0.3
+aiofiles==0.7.0
+aio-pika==6.8.0
+websockets==9.1
