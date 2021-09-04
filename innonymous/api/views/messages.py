@@ -1,41 +1,55 @@
 from datetime import datetime
 from uuid import UUID
 
-from fastapi import status, APIRouter, Depends, Query, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    status,
+    WebSocket
+)
 from sqlalchemy.ext.asyncio import AsyncSession
+from websockets.exceptions import ConnectionClosedError
 
-from innonymous.api import db_engine, auth
-from innonymous.api.schemas.message import MessageListSchema, \
-    MessageInfoSchema, MessageCreateSchema
-from innonymous.api.utils.time import to_utc_native, inactivity_interval, \
+from innonymous.api import (
+    auth,
+    db_engine,
+    mq
+)
+from innonymous.api.schemas.message import (
+    MessageCreateSchema,
+    MessageInfoSchema,
+    MessageListSchema
+)
+from innonymous.api.utils.time import (
+    inactivity_interval,
+    to_utc_native,
     update_active
-from innonymous.database.models import MessageModel, RoomModel, UserModel
+)
+from innonymous.database.models import (
+    MessageModel,
+    RoomModel,
+    UserModel
+)
 from innonymous.database.utils import get_by
 
-router = APIRouter(tags=['messages', 'rooms'])
+router = APIRouter(tags=['messages'])
 
 
-@router.get(
-    '/rooms/{uuid}/messages',
-    response_model=MessageListSchema
-)
+@router.get('/rooms/{uuid}/messages', response_model=MessageListSchema)
 async def get(
         uuid: UUID,
-        limit: int = Query(
-            None,
-            gt=0
-        ),
-        after: datetime = Query(
-            None
-        ),
-        before: datetime = Query(
-            None
-        ),
+        limit: int = Query(None, gt=0),
+        after: datetime = Query(None),
+        before: datetime = Query(None),
         session: AsyncSession = Depends(db_engine.session)
 ) -> MessageListSchema:
     filters = []
+
     if after:
         filters.append(MessageModel.time >= to_utc_native(after))
+
     if before:
         filters.append(MessageModel.time <= to_utc_native(before))
 
@@ -56,9 +70,7 @@ async def get(
     )
 
 
-@router.post(
-    '/rooms/{uuid}/messages/new'
-)
+@router.post('/rooms/{uuid}/messages/new')
 async def create(
         uuid: UUID,
         message: MessageCreateSchema,
@@ -83,10 +95,7 @@ async def create(
         )
 
     message = MessageModel(
-        type=message.type,
-        data=message.data,
-        user=user,
-        room=room
+        type=message.type, data=message.data, user=user, room=room
     )
 
     session.add(message)
@@ -94,3 +103,20 @@ async def create(
     await session.commit()
     await update_active(room, session)
     await update_active(user, session)
+
+    await mq.publish(MessageInfoSchema.from_orm(message))
+
+
+@router.websocket('/messages/updates')
+async def updates(websocket: WebSocket) -> None:
+    await websocket.accept()
+
+    try:
+        async for message in mq.subscribe(MessageInfoSchema):
+            await websocket.send_text(message.json())
+
+    except ConnectionClosedError:
+        return None
+
+    finally:
+        await websocket.close()

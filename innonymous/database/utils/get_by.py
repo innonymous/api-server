@@ -1,4 +1,9 @@
-from typing import Any, Type, TypeVar, Union
+from typing import (
+    Any,
+    Type,
+    TypeVar,
+    Union
+)
 
 from sqlalchemy import Column
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,8 +24,5 @@ async def get_by(
         **kwargs
 ) -> list[Model]:
     return await query(
-        session,
-        select(model).where(attribute == value),
-        *args,
-        **kwargs
+        session, select(model).where(attribute == value), *args, **kwargs
     )

@@ -1,5 +1,8 @@
-from pydantic import BaseModel
+from pydantic import (
+    BaseModel,
+    constr
+)
 
 
 class RoomCreateSchema(BaseModel):
-    name: str
+    name: constr(regex=r'^.{5,32}$')

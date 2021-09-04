@@ -1,25 +1,25 @@
 version: 1
 
 formatters:
-    default:
-        format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  default:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 handlers:
-    console:
-        class: logging.StreamHandler
-        level: DEBUG
-        formatter: default
-        stream: ext://sys.stdout
+  console:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: default
+    stream: ext://sys.stdout
 
 loggers:
-    api:
-        level: INFO
-        handlers: [console]
+  api:
+    level: INFO
+    handlers: [ console ]
 
-    uvicorn:
-        level: INFO
-        handlers: [console]
+  uvicorn:
+    level: INFO
+    handlers: [ console ]
 
-    model_server:
-        level: INFO
-        handlers: [console]
+  model_server:
+    level: INFO
+    handlers: [ console ]

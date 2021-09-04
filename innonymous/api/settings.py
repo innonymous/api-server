@@ -1,10 +1,14 @@
 from typing import Type
 
-from pydantic import BaseSettings, validator
+from pydantic import (
+    BaseSettings,
+    validator
+)
 
 
 class APISettings(BaseSettings):
     key: str
+    amqp_url: str
     database_url: str
 
     @validator('key')

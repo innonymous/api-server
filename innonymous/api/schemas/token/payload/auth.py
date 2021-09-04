@@ -1,6 +1,9 @@
 from uuid import UUID
 
-from pydantic import BaseModel, Extra
+from pydantic import (
+    BaseModel,
+    Extra
+)
 
 
 class TokenAuthPayloadSchema(BaseModel):

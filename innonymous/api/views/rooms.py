@@ -1,20 +1,34 @@
-from fastapi import status, APIRouter, Depends, HTTPException
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    status
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from innonymous.api import db_engine, auth
-from innonymous.api.schemas.room import RoomInfoSchema, RoomListSchema, \
-    RoomCreateSchema
-from innonymous.api.utils.time import inactivity_interval, update_active
-from innonymous.database.models import RoomModel, UserModel
+from innonymous.api import (
+    auth,
+    db_engine
+)
+from innonymous.api.schemas.room import (
+    RoomCreateSchema,
+    RoomInfoSchema,
+    RoomListSchema
+)
+from innonymous.api.utils.time import (
+    inactivity_interval,
+    update_active
+)
+from innonymous.database.models import (
+    RoomModel,
+    UserModel
+)
 from innonymous.database.utils import get_all
 
 router = APIRouter(tags=['rooms'])
 
 
-@router.get(
-    '/rooms/',
-    response_model=RoomListSchema
-)
+@router.get('/rooms/', response_model=RoomListSchema)
 async def get(
         session: AsyncSession = Depends(db_engine.session)
 ) -> RoomListSchema:
@@ -26,10 +40,7 @@ async def get(
     )
 
 
-@router.post(
-    '/rooms/new',
-    response_model=RoomInfoSchema
-)
+@router.post('/rooms/new', response_model=RoomInfoSchema)
 async def create(
         room: RoomCreateSchema,
         user: UserModel = Depends(auth.authenticate),
@@ -43,16 +54,11 @@ async def create(
             detail='Too many requests, try later.'
         )
 
-    room = RoomModel(
-        name=room.name
-    )
-
+    room = RoomModel(name=room.name)
     session.add(room)
 
     await session.commit()
     await session.refresh(room)
     await update_active(user, session)
 
-    return RoomInfoSchema.from_orm(
-        room
-    )
+    return RoomInfoSchema.from_orm(room)
