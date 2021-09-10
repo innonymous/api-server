@@ -1,6 +1,10 @@
 from os import cpu_count, environ
 from pathlib import Path
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 bind = environ.get('API_BIND_URL', '0.0.0.0:8000')
 
 workers = cpu_count()
