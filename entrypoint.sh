@@ -7,4 +7,4 @@ set -e;
 ./env/bin/alembic --config ./config/alembic.ini upgrade head;
 
 # Start server.
-./env/bin/gunicorn --config ./config/gunicorn.conf.py innonymous.api:app;
+./env/bin/gunicorn --config ./config/gunicorn.conf.py "$*" innonymous.api:app;
