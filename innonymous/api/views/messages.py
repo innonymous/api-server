@@ -40,7 +40,7 @@ router = APIRouter(tags=['messages'])
 @router.get('/rooms/{uuid}/messages', response_model=MessageListSchema)
 async def get(
         uuid: UUID,
-        limit: int = Query(None, gt=0),
+        limit: int = Query(100, gt=0, le=500),
         after: datetime = Query(None),
         before: datetime = Query(None),
         session: AsyncSession = Depends(db_engine.session)
