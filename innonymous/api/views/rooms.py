@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from fastapi import (
     APIRouter,
     Depends,
@@ -23,13 +25,13 @@ from innonymous.database.models import (
     RoomModel,
     UserModel
 )
-from innonymous.database.utils import get_all
+from innonymous.database.utils import get_all, get_by
 
 router = APIRouter(tags=['rooms'])
 
 
-@router.get('/rooms/', response_model=RoomListSchema)
-async def get(
+@router.get('/rooms', response_model=RoomListSchema)
+async def get_all(
         session: AsyncSession = Depends(db_engine.session)
 ) -> RoomListSchema:
     return RoomListSchema(
@@ -38,6 +40,22 @@ async def get(
             for room in await get_all(session, RoomModel)
         ]
     )
+
+
+@router.get('/rooms/{uuid}', response_model=RoomInfoSchema)
+async def get_by_uuid(
+        uuid: UUID, session: AsyncSession = Depends(db_engine.session)
+) -> RoomInfoSchema:
+    room: RoomModel
+    room, = await get_by(session, RoomModel, RoomModel.uuid, uuid) or [None]
+
+    if not room:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'Room with uuid {uuid} not found.'
+        )
+
+    return RoomInfoSchema.from_orm(room)
 
 
 @router.post('/rooms/new', response_model=RoomInfoSchema)

@@ -34,7 +34,7 @@ router = APIRouter(tags=['users'])
 
 
 @router.get('/users/{uuid}', response_model=UserInfoSchema)
-async def get(
+async def get_by_uuid(
         uuid: UUID, session: AsyncSession = Depends(db_engine.session)
 ) -> UserInfoSchema:
     user = await get_by(session, UserModel, UserModel.uuid, uuid)
@@ -42,7 +42,7 @@ async def get(
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f'UserModel with uuid {uuid} not found.'
+            detail=f'User with uuid {uuid} not found.'
         )
 
     return UserInfoSchema.from_orm(user[0])

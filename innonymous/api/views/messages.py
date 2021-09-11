@@ -55,8 +55,8 @@ async def get(
 
     return MessageListSchema(
         messages=[
-            MessageInfoSchema.from_orm(room)
-            for room in await get_by(
+            MessageInfoSchema.from_orm(message)
+            for message in await get_by(
                 session,
                 MessageModel,
                 MessageModel.room_uuid,
@@ -91,7 +91,7 @@ async def create(
     if not room:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f'UserModel with uuid {uuid} not found.'
+            detail=f'Room with uuid {uuid} not found.'
         )
 
     message = MessageModel(
