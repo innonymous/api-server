@@ -31,7 +31,7 @@ router = APIRouter(tags=['rooms'])
 
 
 @router.get('/rooms', response_model=RoomListSchema)
-async def get_all(
+async def get(
         session: AsyncSession = Depends(db_engine.session)
 ) -> RoomListSchema:
     return RoomListSchema(
