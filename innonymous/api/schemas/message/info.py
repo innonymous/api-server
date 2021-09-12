@@ -1,7 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
 from innonymous.database.models import MessageType
 
@@ -13,6 +13,10 @@ class MessageInfoSchema(BaseModel):
     time: datetime
     type: MessageType
     data: bytes = None
+
+    @validator('time')
+    def convert_time(cls, time: datetime) -> datetime:
+        return time.replace(tzinfo=timezone.utc)
 
     class Config:
         orm_mode = True
