@@ -40,7 +40,7 @@ router = APIRouter(tags=['messages'])
 @router.get('/rooms/{uuid}/messages', response_model=MessageListSchema)
 async def get(
         uuid: UUID,
-        limit: int = Query(None, gt=0),
+        limit: int = Query(100, gt=0, le=500),
         after: datetime = Query(None),
         before: datetime = Query(None),
         session: AsyncSession = Depends(db_engine.session)
@@ -55,8 +55,8 @@ async def get(
 
     return MessageListSchema(
         messages=[
-            MessageInfoSchema.from_orm(room)
-            for room in await get_by(
+            MessageInfoSchema.from_orm(message)
+            for message in await get_by(
                 session,
                 MessageModel,
                 MessageModel.room_uuid,
@@ -91,7 +91,7 @@ async def create(
     if not room:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f'UserModel with uuid {uuid} not found.'
+            detail=f'Room with uuid {uuid} not found.'
         )
 
     message = MessageModel(
