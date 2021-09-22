@@ -1,8 +1,19 @@
-from typing import Any, TypeVar, Union
+from typing import (
+    Any,
+    TypeVar,
+    Union
+)
 
-from sqlalchemy import Column, desc, asc
+from sqlalchemy import (
+    Column,
+    asc,
+    desc
+)
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload, Query
+from sqlalchemy.orm import (
+    Query,
+    selectinload
+)
 
 from innonymous.database.models import Base
 
@@ -31,6 +42,7 @@ async def query(
     if order_by:
         if decreasing:
             order_by = desc(order_by)
+
         else:
             order_by = asc(order_by)
 
@@ -42,6 +54,4 @@ async def query(
     if limit:
         _query = _query.limit(limit)
 
-    return (
-        await session.execute(_query)
-    ).scalars().all()
+    return (await session.execute(_query)).scalars().all()

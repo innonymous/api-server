@@ -14,8 +14,11 @@ Innonymous is a mobile-ready anonymous chat, powered by python and React.js
 - High performance12345678901234567890123456789012
 
 ## Quick start (You are needed Docker)
+
 Example `.env` file:
+
 ```sh
+API_AMQP_URL=amqp://guest:guest@localhost
 API_DATABASE_URL=postgresql+asyncpg://username:password@host/innonymous
 API_JWT_KEY=32 bytes in hex, can be generated as "openssl rand -hex 32"
 ```
