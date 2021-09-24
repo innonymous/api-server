@@ -5,4 +5,4 @@ from pydantic import (
 
 
 class UserCreateSchema(BaseModel):
-    name: constr(regex=r'^.{5,32}$')
+    name: constr(regex=r'^.{2,32}$')
