@@ -14,7 +14,11 @@ from innonymous.api.utils import (
 from innonymous.api.utils.auth import JWTAuthenticator
 from innonymous.database import DatabaseEngine
 
-app = FastAPI(version='0.0.1', title='InnonymousApi')
+settings = APISettings()
+
+app = FastAPI(
+    version='0.0.2', title='InnonymousApi', root_path=settings.root_path or ''
+)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -23,7 +27,6 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-settings = APISettings()
 captcha = Captcha(settings.key)
 mq = MessageQueue(settings.amqp_url)
 db_engine = DatabaseEngine(settings.database_url)

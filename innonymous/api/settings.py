@@ -1,4 +1,4 @@
-from typing import Type
+from typing import Type, Optional
 
 from pydantic import (
     BaseSettings,
@@ -10,6 +10,9 @@ class APISettings(BaseSettings):
     key: str
     amqp_url: str
     database_url: str
+
+    # Root of the api endpoints.
+    root_path: Optional[str]
 
     @validator('key')
     def validate_key(cls: Type['APISettings'], value: str) -> str:
