@@ -16,7 +16,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from innonymous.api import (
     auth,
     captcha,
-    db_engine
+    db_engine,
+    settings
 )
 from innonymous.api.schemas.token import TokenInfoSchema
 from innonymous.api.schemas.token.payload import (
@@ -56,8 +57,8 @@ async def create(user: UserCreateSchema) -> UserConfirmSchema:
     # noinspection Pydantic
     payload = TokenCreatePayloadSchema(
         uuid=uuid4(), 
-        captcha=_hash, 
-        exp=time.time() + captcha.ttl, 
+        captcha=_hash,
+        exp=time.time() + settings.captcha_ttl,
         **user.dict(),
     )
 

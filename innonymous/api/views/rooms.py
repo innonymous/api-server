@@ -10,7 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from innonymous.api import (
     auth,
-    db_engine
+    db_engine,
+    settings
 )
 from innonymous.api.schemas.room import (
     RoomCreateSchema,
@@ -64,7 +65,7 @@ async def create(
         user: UserModel = Depends(auth.authenticate),
         session: AsyncSession = Depends(db_engine.session)
 ) -> RoomInfoSchema:
-    if inactivity_interval(user).total_seconds() < 0.5:
+    if inactivity_interval(user).total_seconds() < settings.minimal_delay:
         await update_active(user, session)
 
         raise HTTPException(

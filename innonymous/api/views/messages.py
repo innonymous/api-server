@@ -15,7 +15,8 @@ from websockets.exceptions import ConnectionClosedError
 from innonymous.api import (
     auth,
     db_engine,
-    mq
+    mq,
+    settings
 )
 from innonymous.api.schemas.message import (
     MessageCreateSchema,
@@ -77,7 +78,7 @@ async def create(
         user: UserModel = Depends(auth.authenticate),
         session: AsyncSession = Depends(db_engine.session)
 ) -> None:
-    if inactivity_interval(user).total_seconds() < 0.5:
+    if inactivity_interval(user).total_seconds() < settings.minimal_delay:
         await update_active(user, session)
 
         raise HTTPException(

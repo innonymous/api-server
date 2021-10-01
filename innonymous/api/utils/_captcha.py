@@ -1,6 +1,6 @@
 import hmac
-import random
-import string
+from random import choices
+from string import digits, ascii_lowercase
 
 from captcha.image import ImageCaptcha
 
@@ -8,24 +8,18 @@ from captcha.image import ImageCaptcha
 class Captcha:
     length = 4
     algorithm = 'SHA256'
-    ttl = 5 * 60  # in seconds
 
+    # a-z, 0-9, except similar characters.
+    alphabet = ''.join(
+        set(ascii_lowercase + digits).difference(set('9q0ocda17uv6b'))
+    )
 
     def __init__(self, key: str) -> None:
         self.__key = key.encode()
         self.__image = ImageCaptcha()
-        
-        forbidden_symbols = '0ocda17uv6b'
-        self.alphabet = [
-            c for c in string.ascii_lowercase + string.digits 
-            if c not in forbidden_symbols
-        ]
-
-    def _generate_string(self) -> str:
-        return ''.join(random.choices(self.alphabet, k=Captcha.length))
 
     def generate(self) -> tuple[str, bytes]:
-        payload = self._generate_string()
+        payload = ''.join(choices(Captcha.alphabet, k=Captcha.length))
 
         with self.__image.generate(payload, 'jpeg') as buffer:
             captcha = buffer.getvalue()

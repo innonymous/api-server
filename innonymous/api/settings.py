@@ -11,6 +11,9 @@ class APISettings(BaseSettings):
     amqp_url: str
     database_url: str
 
+    captcha_ttl: int = 300
+    minimal_delay: float = 0.5
+
     # Root of the api endpoints.
     root_path: Optional[str]
 
