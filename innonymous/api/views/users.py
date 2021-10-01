@@ -1,4 +1,5 @@
 from base64 import b64encode
+import time
 from uuid import (
     UUID,
     uuid4
@@ -54,7 +55,10 @@ async def create(user: UserCreateSchema) -> UserConfirmSchema:
 
     # noinspection Pydantic
     payload = TokenCreatePayloadSchema(
-        uuid=uuid4(), captcha=_hash, **user.dict()
+        uuid=uuid4(), 
+        captcha=_hash, 
+        exp=time.time() + captcha.ttl, 
+        **user.dict(),
     )
 
     return UserConfirmSchema(
