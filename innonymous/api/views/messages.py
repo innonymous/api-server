@@ -102,7 +102,6 @@ async def create(
     session.add(message)
 
     await session.commit()
-    await update_active(room, session)
     await update_active(user, session)
 
     await mq.publish(MessageInfoSchema.from_orm(message))
