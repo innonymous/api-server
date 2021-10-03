@@ -10,8 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from innonymous.api import (
     auth,
-    db_engine
+    db_engine,
+    settings,
+    mq
 )
+from innonymous.api.schemas.message import MessageInfoSchema
 from innonymous.api.schemas.room import (
     RoomCreateSchema,
     RoomInfoSchema,
@@ -23,7 +26,9 @@ from innonymous.api.utils.time import (
 )
 from innonymous.database.models import (
     RoomModel,
-    UserModel
+    UserModel,
+    MessageModel,
+    MessageType
 )
 from innonymous.database.utils import get_all, get_by
 
@@ -64,7 +69,7 @@ async def create(
         user: UserModel = Depends(auth.authenticate),
         session: AsyncSession = Depends(db_engine.session)
 ) -> RoomInfoSchema:
-    if inactivity_interval(user).total_seconds() < 0.5:
+    if inactivity_interval(user).total_seconds() < settings.minimal_delay:
         await update_active(user, session)
 
         raise HTTPException(
@@ -78,5 +83,13 @@ async def create(
     await session.commit()
     await session.refresh(room)
     await update_active(user, session)
+
+    message = MessageModel(
+        type=MessageType.text, data=b'Room created.', user=user, room=room
+    )
+
+    session.add(message)
+    await session.commit()
+    await mq.publish(MessageInfoSchema.from_orm(message))
 
     return RoomInfoSchema.from_orm(room)

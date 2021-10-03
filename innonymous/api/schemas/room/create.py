@@ -5,4 +5,4 @@ from pydantic import (
 
 
 class RoomCreateSchema(BaseModel):
-    name: constr(regex=r'^.{5,32}$')
+    name: constr(regex=r'^[\w0-9][\w0-9\s\-_]{3,30}[\w0-9]$')

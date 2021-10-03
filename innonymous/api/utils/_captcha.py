@@ -1,19 +1,25 @@
 import hmac
-from os import urandom
+from random import choices
+from string import digits, ascii_lowercase
 
 from captcha.image import ImageCaptcha
 
 
 class Captcha:
-    length = 8
+    length = 4
     algorithm = 'SHA256'
+
+    # a-z, 0-9, except similar characters.
+    alphabet = ''.join(
+        set(ascii_lowercase + digits).difference(set('9q0ocda17uv6b'))
+    )
 
     def __init__(self, key: str) -> None:
         self.__key = key.encode()
         self.__image = ImageCaptcha()
 
     def generate(self) -> tuple[str, bytes]:
-        payload = urandom((Captcha.length + 1) // 2).hex()
+        payload = ''.join(choices(Captcha.alphabet, k=Captcha.length))
 
         with self.__image.generate(payload, 'jpeg') as buffer:
             captcha = buffer.getvalue()

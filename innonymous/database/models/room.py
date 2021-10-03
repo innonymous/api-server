@@ -8,10 +8,9 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from innonymous.database.models import Base
-from innonymous.database.models.i_time_trackable import ITimeTrackable
 
 
-class RoomModel(Base, ITimeTrackable):
+class RoomModel(Base):
     __tablename__ = 'rooms'
 
     uuid: UUID = Column(UUID(as_uuid=True), default=uuid4, primary_key=True)
