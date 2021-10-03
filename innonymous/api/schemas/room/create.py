@@ -5,4 +5,4 @@ from pydantic import (
 
 
 class RoomCreateSchema(BaseModel):
-    name: constr(regex=r'^[A-Za-z0-9][A-Za-z0-9 \-_]{3,30}[A-Za-z0-9]$')
+    name: constr(regex=r'^[A-Za-z0-9А-Яа-яЁё][A-Za-z0-9А-Яа-яЁё \-_]{3,30}[A-Za-z0-9А-Яа-яЁё]$')
