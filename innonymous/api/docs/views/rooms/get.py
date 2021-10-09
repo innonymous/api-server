@@ -1,0 +1,1 @@
+description = 'Returns all rooms.'

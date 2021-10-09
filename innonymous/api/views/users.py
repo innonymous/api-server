@@ -31,11 +31,17 @@ from innonymous.api.schemas.user import (
 )
 from innonymous.database.models import UserModel
 from innonymous.database.utils import get_by
+from innonymous.api.docs.views import users as docs
 
 router = APIRouter(tags=['users'])
 
 
-@router.get('/users/{uuid}', response_model=UserInfoSchema)
+@router.get(
+    '/users/{uuid}',
+    response_model=UserInfoSchema,
+    description=docs.get_by_uuid.description,
+    responses=docs.get_by_uuid.responses
+)
 async def get_by_uuid(
         uuid: UUID, session: AsyncSession = Depends(db_engine.session)
 ) -> UserInfoSchema:
@@ -50,7 +56,11 @@ async def get_by_uuid(
     return UserInfoSchema.from_orm(user[0])
 
 
-@router.post('/users/new', response_model=UserConfirmSchema)
+@router.post(
+    '/users/new',
+    response_model=UserConfirmSchema,
+    description=docs.create.description
+)
 async def create(user: UserCreateSchema) -> UserConfirmSchema:
     _hash, _captcha = captcha.generate()
 
@@ -67,7 +77,12 @@ async def create(user: UserCreateSchema) -> UserConfirmSchema:
     )
 
 
-@router.post('/users/new/confirm', response_model=TokenInfoSchema)
+@router.post(
+    '/users/new/confirm',
+    response_model=TokenInfoSchema,
+    description=docs.confirm.description,
+    responses=docs.confirm.responses
+)
 async def confirm(
         user: UserConfirmSchema,
         session: AsyncSession = Depends(db_engine.session)

@@ -30,12 +30,17 @@ from innonymous.database.models import (
     MessageModel,
     MessageType
 )
+from innonymous.api.docs.views import rooms as docs
 from innonymous.database.utils import get_all, get_by
 
 router = APIRouter(tags=['rooms'])
 
 
-@router.get('/rooms', response_model=RoomListSchema)
+@router.get(
+    '/rooms',
+    response_model=RoomListSchema,
+    description=docs.get.description
+)
 async def get(
         session: AsyncSession = Depends(db_engine.session)
 ) -> RoomListSchema:
@@ -47,7 +52,12 @@ async def get(
     )
 
 
-@router.get('/rooms/{uuid}', response_model=RoomInfoSchema)
+@router.get(
+    '/rooms/{uuid}',
+    response_model=RoomInfoSchema,
+    description=docs.get_by_uuid.description,
+    responses=docs.get_by_uuid.responses
+)
 async def get_by_uuid(
         uuid: UUID, session: AsyncSession = Depends(db_engine.session)
 ) -> RoomInfoSchema:
@@ -63,7 +73,12 @@ async def get_by_uuid(
     return RoomInfoSchema.from_orm(room)
 
 
-@router.post('/rooms/new', response_model=RoomInfoSchema)
+@router.post(
+    '/rooms/new',
+    response_model=RoomInfoSchema,
+    description=docs.create.description,
+    responses=docs.create.responses
+)
 async def create(
         room: RoomCreateSchema,
         user: UserModel = Depends(auth.authenticate),
