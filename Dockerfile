@@ -14,6 +14,5 @@ COPY ./innonymous ./innonymous
 COPY ./entrypoint.sh ./entrypoint.sh
 
 # Run.
-USER innonymous
 EXPOSE 8000
 ENTRYPOINT ["sh", "./entrypoint.sh"]
