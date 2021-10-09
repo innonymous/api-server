@@ -17,7 +17,7 @@ from innonymous.database import DatabaseEngine
 settings = APISettings()
 
 app = FastAPI(
-    version='1.0.0', title='InnonymousApi', root_path=settings.root_path or ''
+    version='1.0.1', title='InnonymousApi', root_path=settings.root_path or ''
 )
 app.add_middleware(
     CORSMiddleware,
