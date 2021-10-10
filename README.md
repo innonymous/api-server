@@ -13,14 +13,6 @@ Innonymous server is a fast and easy backend for chating, powered by python Fast
 - Fully anonymous
 - High performance
 
-## Architecture brief view
-
-Server backend is very easy, understandable and fast:
-
-<p align="center">
-<img src="images/arch_back.png"/>
-</p>
-
 
 ## Quick start
 
