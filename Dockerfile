@@ -8,15 +8,11 @@ RUN python -m venv env && \
     ./env/bin/python -m pip install --no-cache-dir -r /tmp/requirements.txt && \
     rm /tmp/requirements.txt
 
-# Actually, we do not need root.
-RUN groupadd innonymous && useradd innonymous -g innonymous
-
 # App.
 COPY ./config ./config
 COPY ./innonymous ./innonymous
 COPY ./entrypoint.sh ./entrypoint.sh
 
 # Run.
-USER innonymous
 EXPOSE 8000
 ENTRYPOINT ["sh", "./entrypoint.sh"]

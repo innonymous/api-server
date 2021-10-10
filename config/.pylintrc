@@ -1,0 +1,31 @@
+[MASTER]
+ignore=migrations
+unsafe-load-any-extension=yes
+
+[MESSAGES CONTROL]
+disable=missing-function-docstring,missing-module-docstring,missing-class-docstring,too-few-public-methods,logging-fstring-interpolation,raise-missing-from,broad-except,no-self-argument,cyclic-import,wrong-import-position
+
+[REPORTS]
+output-format=colorized
+
+[BASIC]
+const-rgx=(([A-Za-z_][A-Za-z0-9_]*)|(__.*__))$
+include-naming-hint=yes
+
+[TYPECHECK]
+ignored-modules=alembic
+generated-members=model_time,__await__
+
+[FORMAT]
+max-line-length=80
+
+[SIMILARITIES]
+
+# Minimum lines number of a similarity.
+min-similarity-lines=16
+ignore-comments=yes
+ignore-docstrings=yes
+ignore-imports=yes
+
+[DESIGN]
+max-args=7
